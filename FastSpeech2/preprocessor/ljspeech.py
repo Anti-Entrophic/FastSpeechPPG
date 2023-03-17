@@ -53,4 +53,3 @@ def prepare_align(config):
                     "w",
                 ) as f1:
                     f1.write(text)
-    assert 0
