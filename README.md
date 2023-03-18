@@ -5,7 +5,8 @@ from https://github.com/ming024
 注：`FastSpeech2/hifigan` 中有2个文件太大放不进来。其中有一个`generator_LJSpeech.pth.tar`是需要的
 
 # tips  
-在使用前，需要上传 `训练集`，`phoneme.characters` 至 `FastSpeech2/filelists`
+在使用前，需要上传 `训练集`，`phoneme.characters` 至 `FastSpeech2/filelists`  
+
 上传 `generator_LJSpeech.pth.tar` 至 `FastSpeech2/hifigan` （这项仅为跑通原代码需要，后续会去除。）
 
 # Update
