@@ -8,12 +8,16 @@ import torch.nn.functional as F
 from transformer import Encoder, Decoder, PostNet
 from .modules import VarianceAdaptor
 from utils.tools import get_mask_from_lengths
+from data_utils import to_gpu
 
+from debugging import logging_init
+import logging
 
 class FastSpeech2(nn.Module):
     """ FastSpeech2 """
 
     def __init__(self, preprocess_config, model_config):
+        logging_init()
         super(FastSpeech2, self).__init__()
         self.model_config = model_config
 
@@ -40,28 +44,26 @@ class FastSpeech2(nn.Module):
                 model_config["transformer"]["encoder_hidden"],
             )
 
-    def forward(
-        self,
-        speakers,
-        texts,
-        src_lens,
-        max_src_len,
-        mels=None,
-        mel_lens=None,
-        max_mel_len=None,
-        p_targets=None,
-        e_targets=None,
-        d_targets=None,
-        p_control=1.0,
-        e_control=1.0,
-        d_control=1.0,
-    ):
+    def parse_batch(self, batch):
+        PPG, input_lengths, mel_padded, gate_padded, output_lengths = batch
+
+        PPG = to_gpu(PPG).float()
+        input_lengths = to_gpu(input_lengths).long()
+        max_len = torch.max(input_lengths.data).item()
+        mel_padded = to_gpu(mel_padded).float()
+        gate_padded = to_gpu(gate_padded).float()
+        output_lengths = to_gpu(output_lengths).long()
+
+        return (
+            (PPG, input_lengths, mel_padded, max_len, output_lengths),
+            (mel_padded, gate_padded))
+
+    def forward(self, PPG, input_lengths, mels, max_len, mel_lens):
+        # PPG, input_lengths, mels, max_len, mel_lens = inputs
+
+        input_lengths, mel_lens = input_lengths.data, mel_lens.data
+        '''
         src_masks = get_mask_from_lengths(src_lens, max_src_len)
-        mel_masks = (
-            get_mask_from_lengths(mel_lens, max_mel_len)
-            if mel_lens is not None
-            else None
-        )
 
         output = self.encoder(texts, src_masks)
 
@@ -90,21 +92,30 @@ class FastSpeech2(nn.Module):
             e_control,
             d_control,
         )
+        '''
+        output = PPG
+        max_mel_len = max(mel_lens)
+
+        mel_masks = (
+            get_mask_from_lengths(mel_lens, max_mel_len)
+            if mel_lens is not None
+            else None
+        )
+        logging.debug("mel_masks before decoder")
+        logging.debug(mel_masks)
+        logging.debug(len(mel_masks[0]))
 
         output, mel_masks = self.decoder(output, mel_masks)
         output = self.mel_linear(output)
+
+        logging.debug(mel_masks)
+        logging.debug(len(mel_masks[0]))
 
         postnet_output = self.postnet(output) + output
 
         return (
             output,
             postnet_output,
-            p_predictions,
-            e_predictions,
-            log_d_predictions,
-            d_rounded,
-            src_masks,
             mel_masks,
-            src_lens,
             mel_lens,
         )
