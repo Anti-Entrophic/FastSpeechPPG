@@ -5,7 +5,8 @@ import numpy as np
 import transformer.Constants as Constants
 from .Layers import FFTBlock
 from text.symbols import symbols
-
+from debugging import logging_init
+import logging
 
 def get_sinusoid_encoding_table(n_position, d_hid, padding_idx=None):
     """ Sinusoid position encoding table """
@@ -104,6 +105,7 @@ class Decoder(nn.Module):
     """ Decoder """
 
     def __init__(self, config):
+        logging_init()
         super(Decoder, self).__init__()
 
         n_position = config["max_seq_len"] + 1
@@ -155,9 +157,23 @@ class Decoder(nn.Module):
 
             # -- Prepare masks
             slf_attn_mask = mask.unsqueeze(1).expand(-1, max_len, -1)
-            dec_output = enc_seq[:, :max_len, :] + self.position_enc[
-                :, :max_len, :
-            ].expand(batch_size, -1, -1)
+            '''
+            x = enc_seq[:, :max_len, :]
+            logging.debug("enc_seq[:, :max_len, :]")
+            logging.debug(x)
+            logging.debug(len(x))
+            logging.debug(len(x[0]))
+            logging.debug(len(x[0][0]))
+            y = self.position_enc[:, :max_len, :].expand(batch_size, -1, -1)
+            logging.debug("self.position_enc[:, :max_len, :]")
+            logging.debug(y)
+            logging.debug(len(y))
+            logging.debug(len(y[0]))
+            logging.debug(len(y[0][0]))d
+            '''
+
+            dec_output = enc_seq[:, :max_len, :] + self.position_enc[:, :max_len, :].expand(batch_size, -1, -1)
+
             mask = mask[:, :max_len]
             slf_attn_mask = slf_attn_mask[:, :, :max_len]
 
