@@ -1,10 +1,10 @@
 transformer:
   encoder_layer: 4
   encoder_head: 2
-  encoder_hidden: 256
+  encoder_hidden: 256 
   decoder_layer: 6
   decoder_head: 2
-  decoder_hidden: 256
+  decoder_hidden: 72 #修改过，这个需要和ppg的y轴维度一致。加上speaker_embedding后是72 + 256
   conv_filter_size: 1024
   conv_kernel_size: [9, 1]
   encoder_dropout: 0.2
@@ -30,7 +30,7 @@ variance_embedding:
 
 multi_speaker: False
 
-max_seq_len: 1000
+max_seq_len: 80 # 修改过，这个和生成的mel_mask的长度是一样的。这个我不确定可不可以这样暴力的改。改是因为和mel的维度对不上。
 
 vocoder:
   model: "HiFi-GAN" # support 'HiFi-GAN', 'MelGAN'
