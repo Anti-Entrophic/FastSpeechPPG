@@ -12,29 +12,87 @@ from utils.model import get_model, get_vocoder, get_param_num
 from utils.tools import to_device, log, synth_one_sample
 from model import FastSpeech2Loss
 from dataset import Dataset
+from data_utils import PPG_MelLoader_test, PPGMelCollate, to_gpu
 
 from evaluate import evaluate
 
+from debugging import logging_init
+import logging
+
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
+class create_hparams():
+    """Create model hyperparameters. Parse nondefault from given string."""
+    ################################
+    #       CUDA Enable            #
+    ################################
+    if torch.cuda.is_available() :
+        cuda_enabled = True    
+    else :
+        cuda_enabled = False
+
+    ################################
+    # Experiment Parameters        #
+    ################################
+    epochs = 100
+    iters_per_checkpoint = 500
+    seed= 1234
+    dynamic_loss_scaling = True
+    fp16_run = False
+    distributed_run = False
+    dist_backend = "nccl"
+    dist_url = "tcp://localhost:54321"
+    cudnn_enabled = True
+    cudnn_benchmark = False
+    ignore_layers = ['embedding.weight']
+
+    ################################
+    # Data Parameters             #
+    ################################
+    load_mel_from_disk = False
+    training_files = 'filelists/phoneme_test.tsv'
+    validation_files = 'filelists/phoneme_test.tsv'
+    text_cleaners = ['japanese_cleaners']
+
+    ################################
+    # Audio Parameters             #
+    ################################
+    max_wav_value = 32768.0
+    sampling_rate = 22050
+    filter_length = 1024
+    hop_length = 256
+    win_length = 1024
+    n_mel_channels = 80
+    mel_fmin = 0.0
+    mel_fmax = 8000.0 
+    # Decoder parameters
+    n_frames_per_step = 1  # currently only 1 is supported
 
 def main(args, configs):
+    logging_init()
     print("Prepare training ...")
-
+    hparams = create_hparams()
     preprocess_config, model_config, train_config = configs
 
     # Get dataset
+    '''
     dataset = Dataset(
         "train.txt", preprocess_config, train_config, sort=True, drop_last=True
     )
     batch_size = train_config["optimizer"]["batch_size"]
     group_size = 4  # Set this larger than 1 to enable sorting in Dataset
     assert batch_size * group_size < len(dataset)
+    '''
+    collate_fnn = PPGMelCollate(hparams.n_frames_per_step)
+    dataset = PPG_MelLoader_test(hparams.training_files, hparams)
+    batch_size = train_config["optimizer"]["batch_size"]
+    group_size = 4  # Set this larger than 1 to enable sorting in Dataset
+
     loader = DataLoader(
         dataset,
         batch_size=batch_size * group_size,
         shuffle=True,
-        collate_fn=dataset.collate_fn,
+        collate_fn=collate_fnn,
     )
 
     # Prepare model
@@ -75,14 +133,31 @@ def main(args, configs):
     while True:
         inner_bar = tqdm(total=len(loader), desc="Epoch {}".format(epoch), position=1)
         for batchs in loader:
-            for batch in batchs:
-                batch = to_device(batch, device)
+                logging.debug(batchs)
+                # PPG, input_lengths, mel_padded, gate_padded, output_lengths = batchs
 
+                PPG = batchs[0]
+                input_lengths = batchs[1] 
+                mel_padded = batchs[2]
+                gate_padded = batchs[3]
+                output_lengths = batchs[4]
+
+                PPG = to_gpu(PPG).float()
+                input_lengths = to_gpu(input_lengths).long()
+                max_len = torch.max(input_lengths.data).item()
+                mel_padded = to_gpu(mel_padded).float()
+                gate_padded = to_gpu(gate_padded).float()
+                output_lengths = to_gpu(output_lengths).long()
+
+                # x, y = model.parse_batch(batch)
                 # Forward
-                output = model(*(batch[2:]))
-
+                output = model(PPG, input_lengths, mel_padded, max_len, output_lengths)
+                mel_predictions = output[0]
+                postnet_mel_predictions = output[1]
+                mel_masks = output[2]
                 # Cal Loss
-                losses = Loss(batch, output)
+                losses = Loss(PPG, input_lengths, mel_padded, max_len, output_lengths, 
+                    mel_predictions, postnet_mel_predictions, mel_masks)
                 total_loss = losses[0]
 
                 # Backward
@@ -112,7 +187,7 @@ def main(args, configs):
 
                 if step % synth_step == 0:
                     fig, wav_reconstruction, wav_prediction, tag = synth_one_sample(
-                        batch,
+                        batchs,
                         output,
                         vocoder,
                         model_config,
@@ -165,7 +240,7 @@ def main(args, configs):
                 step += 1
                 outer_bar.update(1)
 
-            inner_bar.update(1)
+                inner_bar.update(1)
         epoch += 1
 
 
