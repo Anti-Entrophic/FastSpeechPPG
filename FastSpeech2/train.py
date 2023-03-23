@@ -50,8 +50,8 @@ class create_hparams():
     # Data Parameters             #
     ################################
     load_mel_from_disk = False
-    training_files = 'filelists/phoneme_test.tsv'
-    validation_files = 'filelists/phoneme_test.tsv'
+    training_files = 'filelists/phoneme_test_wav.tsv'
+    validation_files = 'filelists/phoneme_test_wav.tsv'
     text_cleaners = ['japanese_cleaners']
 
     ################################
