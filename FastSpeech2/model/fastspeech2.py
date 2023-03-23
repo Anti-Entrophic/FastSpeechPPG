@@ -8,7 +8,6 @@ import torch.nn.functional as F
 from transformer import Encoder, Decoder, PostNet
 from .modules import VarianceAdaptor
 from utils.tools import get_mask_from_lengths
-from data_utils import to_gpu
 
 from debugging import logging_init
 import logging
@@ -43,20 +42,6 @@ class FastSpeech2(nn.Module):
                 n_speaker,
                 model_config["transformer"]["encoder_hidden"],
             )
-
-    def parse_batch(self, batch):
-        PPG, input_lengths, mel_padded, gate_padded, output_lengths = batch
-
-        PPG = to_gpu(PPG).float()
-        input_lengths = to_gpu(input_lengths).long()
-        max_len = torch.max(input_lengths.data).item()
-        mel_padded = to_gpu(mel_padded).float()
-        gate_padded = to_gpu(gate_padded).float()
-        output_lengths = to_gpu(output_lengths).long()
-
-        return (
-            (PPG, input_lengths, mel_padded, max_len, output_lengths),
-            (mel_padded, gate_padded))
 
     def forward(self, PPG, input_lengths, mels, max_len, mel_lens):
         # PPG, input_lengths, mels, max_len, mel_lens = inputs
