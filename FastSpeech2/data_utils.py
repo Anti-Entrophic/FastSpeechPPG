@@ -2,7 +2,7 @@ import random
 import numpy as np
 import torch
 import torch.utils.data
-from resemblyzer import VoiceEncoder, preprocess_wav
+# from resemblyzer import VoiceEncoder, preprocess_wav
 from pathlib import Path
 from scipy.io.wavfile import read
 
@@ -49,8 +49,7 @@ class PPG_MelLoader_test(torch.utils.data.Dataset):
         
         # 先获取PPG和speaker_embedding
         # speaker_embedding = self.get_id(audiopath)
-        speaker_embedding = self.get_id(audiopath)
-        PPG = self.get_ppg(PPG, speaker_embedding, pho_map)
+        PPG = self.get_ppg(PPG, pho_map)
         mel = self.get_mel(audiopath)
         return (PPG, mel)
 
@@ -88,7 +87,7 @@ class PPG_MelLoader_test(torch.utils.data.Dataset):
 
         return melspec
 
-    def get_ppg(self, PPG, speaker_embedding, pho_map):
+    def get_ppg(self, PPG, pho_map):
         # 传入的是一个包含音素，由空格分隔的字符串
         # 分割完得到一个列表
         
@@ -98,8 +97,8 @@ class PPG_MelLoader_test(torch.utils.data.Dataset):
         PPG_temp = np.eye(72)[pho_id_list]
         PPG_temp = torch.from_numpy(PPG_temp)
         # 应该还要动model.py里的Tacotron2 Class. 原本TextMelLoader只是传出text的sequence, 之后是在Tacotron2 Class里每个embedding成512维
-        for frame in PPG_temp:
-            frame = np.append(frame, speaker_embedding)
+        # for frame in PPG_temp:
+        #     frame = np.append(frame, speaker_embedding)
         return PPG_temp
 
     def __getitem__(self, index):
