@@ -133,7 +133,6 @@ def main(args, configs):
     while True:
         inner_bar = tqdm(total=len(loader), desc="Epoch {}".format(epoch), position=1)
         for batchs in loader:
-                logging.debug(batchs)
                 # PPG, input_lengths, mel_padded, gate_padded, output_lengths = batchs
 
                 PPG = batchs[0]
@@ -146,19 +145,41 @@ def main(args, configs):
                 input_lengths = to_gpu(input_lengths).long()
                 max_len = torch.max(input_lengths.data).item()
                 mel_padded = to_gpu(mel_padded).float()
+                mel_padded.permute(0, 2, 1)
                 gate_padded = to_gpu(gate_padded).float()
                 output_lengths = to_gpu(output_lengths).long()
-
-                # x, y = model.parse_batch(batch)
+                
+                logging.debug("PPG:")
+                logging.debug(PPG)
+                logging.debug(PPG.shape)
+                logging.debug(PPG[0].shape)
+                logging.debug("input_lengths:")
+                logging.debug(input_lengths)
+                logging.debug(input_lengths.shape)
+                logging.debug("mel_padded:")
+                logging.debug(mel_padded)
+                logging.debug(mel_padded.shape)
+                logging.debug(mel_padded[0].shape)
+                logging.debug("gate_padded:")
+                logging.debug(gate_padded)
+                logging.debug(gate_padded.shape)
+                logging.debug("output_lengths:")
+                logging.debug(output_lengths)
+                logging.debug(output_lengths.shape)
+                
+                
                 # Forward
                 output = model(PPG, input_lengths, mel_padded, max_len, output_lengths)
                 mel_predictions = output[0]
                 postnet_mel_predictions = output[1]
                 mel_masks = output[2]
+                
                 # Cal Loss
                 losses = Loss(PPG, input_lengths, mel_padded, max_len, output_lengths, 
                     mel_predictions, postnet_mel_predictions, mel_masks)
                 total_loss = losses[0]
+
+                assert 0
 
                 # Backward
                 total_loss = total_loss / grad_acc_step
