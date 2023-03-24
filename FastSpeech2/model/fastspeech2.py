@@ -45,7 +45,8 @@ class FastSpeech2(nn.Module):
 
     def forward(self, PPG, input_lengths, mels, max_len, mel_lens):
         # PPG, input_lengths, mels, max_len, mel_lens = inputs
-
+        logging.debug("in fastspeech 2, forward")
+        # 我不清楚这步.data有什么意义
         input_lengths, mel_lens = input_lengths.data, mel_lens.data
         '''
         src_masks = get_mask_from_lengths(src_lens, max_src_len)
@@ -79,6 +80,7 @@ class FastSpeech2(nn.Module):
         )
         '''
         output = PPG
+
         max_mel_len = max(mel_lens)
 
         mel_masks = (
@@ -86,17 +88,34 @@ class FastSpeech2(nn.Module):
             if mel_lens is not None
             else None
         )
-        logging.debug("mel_masks before decoder")
+        logging.debug("mel_masks")
         logging.debug(mel_masks)
-        logging.debug(len(mel_masks[0]))
+        logging.debug(mel_masks.shape)
 
+        logging.debug("-----through decoder-----")
         output, mel_masks = self.decoder(output, mel_masks)
-        output = self.mel_linear(output)
-
+        logging.debug("decoder output:")
+        logging.debug(output)
+        logging.debug(output.shape)
+        logging.debug("mel_masks:")
         logging.debug(mel_masks)
-        logging.debug(len(mel_masks[0]))
+        logging.debug(mel_masks.shape)
 
-        postnet_output = self.postnet(output) + output
+        logging.debug("-----mel linear output-----")
+        output = self.mel_linear(output)
+        logging.debug(output)
+        logging.debug(output.shape)
+
+        logging.debug("-----postnet-----")
+        temp = self.postnet(output)
+        logging.debug("postnet(output):")
+        logging.debug(temp)
+        logging.debug(temp.shape)
+
+        postnet_output = temp + output
+        logging.debug("postnet_output")
+        logging.debug(postnet_output)
+        logging.debug(postnet_output.shape)
 
         return (
             output,
