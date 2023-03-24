@@ -17,6 +17,13 @@ def load_filepaths_and_PPG(filename, split="|"):
         filepaths_and_PPG = [line.strip().split(split) for line in f]
     return filepaths_and_PPG
   
+def to_gpu(x):
+    x = x.contiguous()
+
+    if torch.cuda.is_available():
+        x = x.cuda(non_blocking=True)
+    return torch.autograd.Variable(x)
+    
 class PPG_MelLoader_test(torch.utils.data.Dataset):
     """
         test phoneme_train_corpus.csv
