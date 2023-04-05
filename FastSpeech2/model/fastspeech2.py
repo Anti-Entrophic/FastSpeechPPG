@@ -9,9 +9,6 @@ from transformer import Encoder, Decoder, PostNet
 from .modules import VarianceAdaptor
 from utils.tools import get_mask_from_lengths
 
-from debugging import logging_init
-import logging
-
 class FastSpeech2(nn.Module):
     """ FastSpeech2 """
 
@@ -45,7 +42,6 @@ class FastSpeech2(nn.Module):
 
     def forward(self, PPG, input_lengths, mels, max_len, mel_lens):
         # PPG, input_lengths, mels, max_len, mel_lens = inputs
-        logging.debug("in fastspeech 2, forward")
         # 我不清楚这步.data有什么意义
         input_lengths, mel_lens = input_lengths.data, mel_lens.data
         '''
