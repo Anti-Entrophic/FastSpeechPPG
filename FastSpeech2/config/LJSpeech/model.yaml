@@ -4,7 +4,7 @@ transformer:
   encoder_hidden: 256 
   decoder_layer: 6
   decoder_head: 2
-  decoder_hidden: 72 #修改过，这个需要和ppg的y轴维度一致。加上speaker_embedding后是72 + 256
+  decoder_hidden: 328 #修改过，这个需要和ppg的y轴维度一致。加上speaker_embedding后是72 + 256
   conv_filter_size: 1024
   conv_kernel_size: [9, 1]
   encoder_dropout: 0.2
