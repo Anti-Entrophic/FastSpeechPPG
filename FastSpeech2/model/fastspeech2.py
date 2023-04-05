@@ -88,34 +88,14 @@ class FastSpeech2(nn.Module):
             if mel_lens is not None
             else None
         )
-        logging.debug("mel_masks")
-        logging.debug(mel_masks)
-        logging.debug(mel_masks.shape)
 
-        logging.debug("-----through decoder-----")
         output, mel_masks = self.decoder(output, mel_masks)
-        logging.debug("decoder output:")
-        logging.debug(output)
-        logging.debug(output.shape)
-        logging.debug("mel_masks:")
-        logging.debug(mel_masks)
-        logging.debug(mel_masks.shape)
 
-        logging.debug("-----mel linear output-----")
         output = self.mel_linear(output)
-        logging.debug(output)
-        logging.debug(output.shape)
 
-        logging.debug("-----postnet-----")
         temp = self.postnet(output)
-        logging.debug("postnet(output):")
-        logging.debug(temp)
-        logging.debug(temp.shape)
 
         postnet_output = temp + output
-        logging.debug("postnet_output")
-        logging.debug(postnet_output)
-        logging.debug(postnet_output.shape)
 
         return (
             output,
