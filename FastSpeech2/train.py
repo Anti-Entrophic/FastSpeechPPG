@@ -16,6 +16,9 @@ from data_utils import PPG_MelLoader_test, PPGMelCollate, to_gpu
 
 from evaluate import evaluate
 
+from debugging import logging_init
+import logging
+
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
 class create_hparams():
@@ -67,18 +70,10 @@ class create_hparams():
 
 def main(args, configs):
     print("Prepare training ...")
+    logging_init()
     hparams = create_hparams()
     preprocess_config, model_config, train_config = configs
 
-    # Get dataset
-    '''
-    dataset = Dataset(
-        "train.txt", preprocess_config, train_config, sort=True, drop_last=True
-    )
-    batch_size = train_config["optimizer"]["batch_size"]
-    group_size = 4  # Set this larger than 1 to enable sorting in Dataset
-    assert batch_size * group_size < len(dataset)
-    '''
     collate_fnn = PPGMelCollate(hparams.n_frames_per_step)
     dataset = PPG_MelLoader_test(hparams.training_files, hparams)
     batch_size = train_config["optimizer"]["batch_size"]
@@ -86,7 +81,7 @@ def main(args, configs):
 
     loader = DataLoader(
         dataset,
-        batch_size=batch_size * group_size, # 爆显存的话改这里
+        batch_size=batch_size * group_size,
         shuffle=True,
         collate_fn=collate_fnn,
     )
@@ -141,10 +136,9 @@ def main(args, configs):
                 input_lengths = to_gpu(input_lengths).long()
                 max_len = torch.max(input_lengths.data).item()
                 mel_padded = to_gpu(mel_padded).float()
-
                 gate_padded = to_gpu(gate_padded).float()
                 output_lengths = to_gpu(output_lengths).long()
-                
+
                 # Forward
                 output = model(PPG, input_lengths, mel_padded, max_len, output_lengths)
                 mel_predictions = output[0]
@@ -180,7 +174,7 @@ def main(args, configs):
                     outer_bar.write(message1 + message2)
 
                     log(train_logger, step, losses=losses)
-
+                '''
                 if step % synth_step == 0:
                     fig, wav_reconstruction, wav_prediction, tag = synth_one_sample(
                         batchs,
@@ -209,10 +203,10 @@ def main(args, configs):
                         sampling_rate=sampling_rate,
                         tag="Training/step_{}_{}_synthesized".format(step, tag),
                     )
-
+                '''
                 if step % val_step == 0:
                     model.eval()
-                    message = evaluate(model, step, configs, val_logger, vocoder)
+                    message = evaluate(model, step, configs, hparams, val_logger, vocoder)
                     with open(os.path.join(val_log_path, "log.txt"), "a") as f:
                         f.write(message + "\n")
                     outer_bar.write(message)
