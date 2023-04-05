@@ -16,9 +16,6 @@ from data_utils import PPG_MelLoader_test, PPGMelCollate, to_gpu
 
 from evaluate import evaluate
 
-from debugging import logging_init
-import logging
-
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
 class create_hparams():
@@ -69,11 +66,7 @@ class create_hparams():
     n_frames_per_step = 1  # currently only 1 is supported
 
 def main(args, configs):
-    logging_init()
     print("Prepare training ...")
-    logging.debug("-----------------------")
-    logging.debug("-----------------------")
-    logging.debug("-----------------------")
     hparams = create_hparams()
     preprocess_config, model_config, train_config = configs
 
@@ -93,8 +86,7 @@ def main(args, configs):
 
     loader = DataLoader(
         dataset,
-        #batch_size=batch_size * group_size,
-        batch_size=1,
+        batch_size=batch_size * group_size, # 爆显存的话改这里
         shuffle=True,
         collate_fn=collate_fnn,
     )
@@ -152,25 +144,6 @@ def main(args, configs):
 
                 gate_padded = to_gpu(gate_padded).float()
                 output_lengths = to_gpu(output_lengths).long()
-                
-                logging.debug("PPG:")
-                logging.debug(PPG)
-                logging.debug(PPG.shape)
-                logging.debug(PPG[0].shape)
-                logging.debug("input_lengths:")
-                logging.debug(input_lengths)
-                logging.debug(input_lengths.shape)
-                logging.debug("mel_padded:")
-                logging.debug(mel_padded)
-                logging.debug(mel_padded.shape)
-                logging.debug(mel_padded[0].shape)
-                logging.debug("gate_padded:")
-                logging.debug(gate_padded)
-                logging.debug(gate_padded.shape)
-                logging.debug("output_lengths:")
-                logging.debug(output_lengths)
-                logging.debug(output_lengths.shape)
-                
                 
                 # Forward
                 output = model(PPG, input_lengths, mel_padded, max_len, output_lengths)
