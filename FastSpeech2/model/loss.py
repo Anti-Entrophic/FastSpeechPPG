@@ -1,13 +1,10 @@
 import torch
 import torch.nn as nn
-from debugging import logging_init
-import logging
 
 class FastSpeech2Loss(nn.Module):
     """ FastSpeech2 Loss """
 
     def __init__(self, preprocess_config, model_config):
-        logging_init()
         super(FastSpeech2Loss, self).__init__()
         self.pitch_feature_level = preprocess_config["preprocessing"]["pitch"][
             "feature"
@@ -35,22 +32,11 @@ class FastSpeech2Loss(nn.Module):
         
         # src_masks = ~src_masks
         mel_masks = ~mel_masks
-        logging.debug("mel_masks")
-        logging.debug(mel_masks)
-        logging.debug(mel_masks.shape)
         # log_duration_targets = torch.log(duration_targets.float() + 1)
 
         mel_targets = mels[:, : mel_masks.shape[1], :]
 
-        logging.debug("mel_targets:")
-        logging.debug(mel_targets)
-        logging.debug(mel_targets.shape)
-
         mel_masks = mel_masks[:, :mel_masks.shape[1]]
-
-        logging.debug("mel_masks")
-        logging.debug(mel_masks)
-        logging.debug(mel_masks.shape)
 
         # log_duration_targets.requires_grad = False
         # pitch_targets.requires_grad = False
@@ -79,24 +65,9 @@ class FastSpeech2Loss(nn.Module):
             mel_masks.unsqueeze(-1)
         )
 
-        logging.debug("mel_masks.unsqueeze(-1)")
-        logging.debug(mel_masks.unsqueeze(-1).shape)
-
-        logging.debug("mel_predictions")
-        logging.debug(mel_predictions)
-        logging.debug(mel_predictions.shape)
-        
-        logging.debug("postnet_mel_predictions")
-        logging.debug(postnet_mel_predictions)
-        logging.debug(postnet_mel_predictions.shape)
-
         mel_targets = mel_targets.permute(0, 2, 1)
 
         mel_targets = mel_targets.masked_select(mel_masks.unsqueeze(-1))
-
-        logging.debug("mel_targets:")
-        logging.debug(mel_targets)
-        logging.debug(mel_targets.shape)
 
         # debug到这一行
         mel_loss = self.mae_loss(mel_predictions, mel_targets)
