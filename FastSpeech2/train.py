@@ -58,10 +58,10 @@ class create_hparams():
     # Audio Parameters             #
     ################################
     max_wav_value = 32768.0
-    sampling_rate = 22050
+    sampling_rate = 16000
     filter_length = 1024
-    hop_length = 256
-    win_length = 1024
+    hop_length = 160
+    win_length = 400
     n_mel_channels = 80
     mel_fmin = 0.0
     mel_fmax = 8000.0 
@@ -71,6 +71,9 @@ class create_hparams():
 def main(args, configs):
     logging_init()
     print("Prepare training ...")
+    logging.debug("-----------------------")
+    logging.debug("-----------------------")
+    logging.debug("-----------------------")
     hparams = create_hparams()
     preprocess_config, model_config, train_config = configs
 
@@ -90,7 +93,8 @@ def main(args, configs):
 
     loader = DataLoader(
         dataset,
-        batch_size=batch_size * group_size,
+        #batch_size=batch_size * group_size,
+        batch_size=1,
         shuffle=True,
         collate_fn=collate_fnn,
     )
@@ -145,7 +149,7 @@ def main(args, configs):
                 input_lengths = to_gpu(input_lengths).long()
                 max_len = torch.max(input_lengths.data).item()
                 mel_padded = to_gpu(mel_padded).float()
-                mel_padded.permute(0, 2, 1)
+
                 gate_padded = to_gpu(gate_padded).float()
                 output_lengths = to_gpu(output_lengths).long()
                 
@@ -179,8 +183,6 @@ def main(args, configs):
                     mel_predictions, postnet_mel_predictions, mel_masks)
                 total_loss = losses[0]
 
-                assert 0
-
                 # Backward
                 total_loss = total_loss / grad_acc_step
                 total_loss.backward()
@@ -195,7 +197,7 @@ def main(args, configs):
                 if step % log_step == 0:
                     losses = [l.item() for l in losses]
                     message1 = "Step {}/{}, ".format(step, total_step)
-                    message2 = "Total Loss: {:.4f}, Mel Loss: {:.4f}, Mel PostNet Loss: {:.4f}, Pitch Loss: {:.4f}, Energy Loss: {:.4f}, Duration Loss: {:.4f}".format(
+                    message2 = "Total Loss: {:.4f}, Mel Loss: {:.4f}, Mel PostNet Loss: {:.4f}".format(
                         *losses
                     )
 
