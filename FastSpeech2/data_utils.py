@@ -58,8 +58,8 @@ class PPG_MelLoader_test(torch.utils.data.Dataset):
         pho_map = self.create_map("/content/FastSpeechPPG/FastSpeech2/filelists/phoneme.characters")
         
         # 先获取PPG和speaker_embedding
-        # speaker_embedding = self.get_id(audiopath)
-        PPG = self.get_ppg(PPG, pho_map)
+        speaker_embedding = self.get_id(audiopath)
+        PPG = self.get_ppg(PPG, speaker_embedding, pho_map)
         mel = self.get_mel(audiopath)
         mel = mel.permute(1, 0)
         if(len(PPG)!=len(mel)):
@@ -81,8 +81,8 @@ class PPG_MelLoader_test(torch.utils.data.Dataset):
         return pho_name
     
     def get_id(self, audiopath):
-        audiopath.split('/')
-        speaker_embedding = np.load(audiopath[4]+'.npy')
+        audiopath = audiopath.split('/')
+        speaker_embedding = np.load("/content/FastSpeechPPG/FastSpeech2/embedding/" + audiopath[4] +'.npy')
         return speaker_embedding
     
     def get_mel(self, filename):
@@ -104,7 +104,7 @@ class PPG_MelLoader_test(torch.utils.data.Dataset):
 
         return melspec
 
-    def get_ppg(self, PPG, pho_map):
+    def get_ppg(self, PPG, speaker_embedding, pho_map):
         # 传入的是一个包含音素，由空格分隔的字符串
         # 分割完得到一个列表
         
@@ -113,10 +113,12 @@ class PPG_MelLoader_test(torch.utils.data.Dataset):
         # 这里的PPG就是对应的ont-hot向量
         PPG_temp = np.eye(72)[pho_id_list]
         PPG_temp = torch.from_numpy(PPG_temp)
-        # 应该还要动model.py里的Tacotron2 Class. 原本TextMelLoader只是传出text的sequence, 之后是在Tacotron2 Class里每个embedding成512维
-        # for frame in PPG_temp:
-        #     frame = np.append(frame, speaker_embedding)
-        return PPG_temp
+        PPG = []
+        for frame in PPG_temp:
+            frame = np.append(frame, speaker_embedding)
+            PPG.append(frame)
+        PPG = torch.Tensor(PPG)
+        return PPG
 
     def __getitem__(self, index):
         # 等于是按行读入
@@ -143,7 +145,7 @@ class PPGMelCollate():
             dim=0, descending=True)
         max_input_len = input_lengths[0]
 
-        PPG_padded = torch.LongTensor(len(batch), max_input_len, 72) # PPG.size(1)是音素个数
+        PPG_padded = torch.LongTensor(len(batch), max_input_len, 328) # PPG.size(1)是音素个数
 
         PPG_padded.zero_()
         for i in range(len(ids_sorted_decreasing)):
