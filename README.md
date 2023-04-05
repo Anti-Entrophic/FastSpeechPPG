@@ -17,4 +17,7 @@ from https://github.com/ming024
 - 注释掉了variance adaptor相关内容
 - 主要问题在维度问题，目前还在调试。在`config/LJSpeech/model.yaml`中有注明修改内容与原因。
 
-          
+2023/4/5
+- 代码全部跑通，可以开始训练。
+- 在log里放了个中间数据，总之维度问题解决了。
+- 可视化代码还在修改，暂时注释掉不影响训练。
