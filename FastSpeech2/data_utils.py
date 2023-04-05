@@ -7,6 +7,8 @@ from pathlib import Path
 from scipy.io.wavfile import read
 
 import layers
+from debugging import logging_init
+import logging
 
 def load_wav_to_torch(full_path):
     sampling_rate, data = read(full_path)
@@ -29,6 +31,7 @@ class PPG_MelLoader_test(torch.utils.data.Dataset):
         test phoneme_train_corpus.csv
     """
     def __init__(self, audiopaths_and_PPG, hparams):
+        logging_init()
         # 这个时候audiopaths_and_PPG是一个列表套列表[[audiopaths,PPGpath],[audiopaths,PPGpath]...]
         # 其中audiopaths是音频路径，PPGpath是存储PPG的npy文件
         self.audiopaths_and_PPG = load_filepaths_and_PPG(audiopaths_and_PPG)
@@ -58,6 +61,13 @@ class PPG_MelLoader_test(torch.utils.data.Dataset):
         # speaker_embedding = self.get_id(audiopath)
         PPG = self.get_ppg(PPG, pho_map)
         mel = self.get_mel(audiopath)
+        mel = mel.permute(1, 0)
+        if(len(PPG)!=len(mel)):
+          if(len(PPG)>len(mel)):
+            PPG = PPG[0:len(mel)]
+          else:
+            mel = mel[0:len(PPG)]
+        mel = mel.permute(1, 0)
         return (PPG, mel)
 
     def create_map(self, filepath):
