@@ -90,6 +90,8 @@ class FastSpeech2Loss(nn.Module):
         logging.debug(postnet_mel_predictions)
         logging.debug(postnet_mel_predictions.shape)
 
+        mel_targets = mel_targets.permute(0, 2, 1)
+
         mel_targets = mel_targets.masked_select(mel_masks.unsqueeze(-1))
 
         logging.debug("mel_targets:")
