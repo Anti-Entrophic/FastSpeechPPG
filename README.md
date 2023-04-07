@@ -21,3 +21,8 @@ from https://github.com/ming024
 - 代码全部跑通，可以开始训练。
 - 在log里放了个中间数据，总之维度问题解决了。
 - 可视化代码还在修改，暂时注释掉不影响训练。
+
+2023/4/7
+- 打算用这个sr=16000的hifigan  https://github.com/bshall/hifigan  来配合我们的数据。
+- 但是这个hifigan的mel是128channels的。需要修改。
+- 新添infer.py，可以load模型进行infer了。
