@@ -62,7 +62,7 @@ class create_hparams():
     filter_length = 1024
     hop_length = 160
     win_length = 400
-    n_mel_channels = 80
+    n_mel_channels = 128
     mel_fmin = 0.0
     mel_fmax = 8000.0 
     # Decoder parameters
@@ -160,7 +160,7 @@ def main(args, configs):
                     # Update weights
                     optimizer.step_and_update_lr()
                     optimizer.zero_grad()
-
+                '''
                 if step % log_step == 0:
                     losses = [l.item() for l in losses]
                     message1 = "Step {}/{}, ".format(step, total_step)
@@ -174,7 +174,7 @@ def main(args, configs):
                     outer_bar.write(message1 + message2)
 
                     log(train_logger, step, losses=losses)
-                '''
+                
                 if step % synth_step == 0:
                     fig, wav_reconstruction, wav_prediction, tag = synth_one_sample(
                         batchs,
