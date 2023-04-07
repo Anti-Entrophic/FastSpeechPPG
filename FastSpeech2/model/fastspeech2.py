@@ -13,7 +13,6 @@ class FastSpeech2(nn.Module):
     """ FastSpeech2 """
 
     def __init__(self, preprocess_config, model_config):
-        logging_init()
         super(FastSpeech2, self).__init__()
         self.model_config = model_config
 
