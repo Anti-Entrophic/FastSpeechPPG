@@ -71,7 +71,7 @@ class PostNet(nn.Module):
 
     def __init__(
         self,
-        n_mel_channels=80,
+        n_mel_channels=128,
         postnet_embedding_dim=512,
         postnet_kernel_size=5,
         postnet_n_convolutions=5,
