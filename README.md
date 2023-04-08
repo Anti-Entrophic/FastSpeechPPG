@@ -26,3 +26,11 @@ from https://github.com/ming024
 - 打算用这个sr=16000的hifigan  https://github.com/bshall/hifigan  来配合我们的数据。
 - 但是这个hifigan的mel是128channels的。需要修改。
 - 新添infer.py，可以load模型进行infer了。
+
+2023/4/8
+- 重新训练完了128channels的FastSpeech2模型。（大小为368m）
+- infer的结果在 `log/4.8` 里
+- 效果还需要改进
+  - 提高PPG的准确度
+  - 处理FastSpeech的encoder部分
+  - 分段padding做streaming infer
