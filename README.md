@@ -5,8 +5,15 @@ from https://github.com/ming024
 注：`FastSpeech2/hifigan` 中有2个文件太大放不进来。其中有一个`generator_LJSpeech.pth.tar`是需要的
 
 # tips  
+- 训练必须： 
 
-上传 `generator_LJSpeech.pth.tar` 至 `FastSpeech2/hifigan` （这项仅为跑通原代码需要，是vocoder的一部分，估计预训练了一个针对LJspeech的？后续会考虑去除。）
+  上传 `generator_LJSpeech.pth.tar` 至 `FastSpeech2/hifigan` 
+  
+- infer必须：
+
+  上传训练后的模型 `16000.pth.tar` 至 `FastSpeech2/output/ckpt/LJSpeech` 
+  
+  将命令行参数 --restore_step 设为预训练模型的步数
 
 # Update
 2023/3/13 整理了点jupyter notebook  
@@ -34,3 +41,6 @@ from https://github.com/ming024
   - 提高PPG的准确度
   - 处理FastSpeech的encoder部分
   - 分段padding做streaming infer
+
+2023/4/14
+- 正在做streaming infer
